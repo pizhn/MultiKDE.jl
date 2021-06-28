@@ -1,7 +1,8 @@
 name: CI
 on:
-  - push
-  - pull_request
+  push:
+    branches-ignore: [document]
+  pull_request:
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
