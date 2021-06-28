@@ -4,10 +4,10 @@
 [![codecov](https://codecov.io/gh/noil-reed/MultiKDE.jl/branch/main/graph/badge.svg)](https://app.codecov.io/gh/noil-reed/MultiKDE.jl)
 
 
-A library used for kernel density estimation, what makes this library different from other julia KDE libraries is:
+A kernel density estimation library, what makes this one different from other julia KDE libraries is:
 1. Multidimension: Using [product kernel](https://csyue.nccu.edu.tw/ch/Kernel%20Estimation(Ref).pdf) to estimate multi-dimensional kernel density. 
 2. Lazy evaluation: Doesn't pre-initialize a KDE, only evaluate points when necessary. 
-3. Categorical distribution: This library supports categorical KDE using two specific kernel functions [Wang-Ryzin](https://academic.oup.com/biomet/article-abstract/68/1/301/237752?redirectedFrom=fulltext) and [Aitchson-Aitken](https://academic.oup.com/biomet/article-abstract/63/3/413/270829?redirectedFrom=fulltext), in which the former one is for categorical distribution that is ordered (age, amount...), the latter is for categorical distribution that is unordered (sex, the face of the coin...). 
+3. Categorical distribution: This library supports categorical KDE using two specific kernel functions [Wang-Ryzin](https://academic.oup.com/biomet/article-abstract/68/1/301/237752?redirectedFrom=fulltext) and [Aitchson-Aitken](https://academic.oup.com/biomet/article-abstract/63/3/413/270829?redirectedFrom=fulltext), in which the former one is for categorical distribution that is ordered (age, amount...), the latter is for categorical distribution that is unordered (sex, the face of the coin...). When using unordered categorical distribution, non-numeric objects are also supported. 
 
 
 ## Usage
