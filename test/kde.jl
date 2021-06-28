@@ -53,7 +53,7 @@ hardcode_dims = [ContinuousDim(), CategoricalDim(10), UnorderedCategoricalDim(10
 hardcode_bws = [[0.01, 0.1, 1], [1, 0.2, 0.01], [0.02, 1, 1], [0.5, 0.5, 0.5]]
 
 # Arguments for sanity tests
-continuous_range = (0, 100)
+continuous_range = (0, 200)
 categorical_level = 10
 unordered_extra_level = 10
 # zero_val_tolerance = 1e-2
@@ -62,9 +62,9 @@ univ_sanity_trial, multi_sanity_trial = 5, 1
 num_s2_test = 100
 num_obs = 20
 dim_types = [ContinuousDim, CategoricalDim, UnorderedCategoricalDim]
-bw_s1 = 0.05
+bw_s1 = 0.1
 bw_s2 = 0.1
-diff_delta = 1e-2
+diff_delta = 2e-1
 multi_test_num_dims = [1, 2, 3, 4, 5]
 min_range = 1
 # Objects for sanity tests
@@ -169,11 +169,11 @@ end
         println("Performing sanity check 1...", string(_dim))
         ## Gradient function
         is_maximum_s1 = [is_maximum(kde_s2, _dt, delta=diff_delta) for _dt in kde_s1.data]
-        println("------------------------------")
-        println(sort(kde_s1.data))
-        println([MultiKDE.pdf(kde_s1, _dt, keep_all=false) for _dt in sort(kde_s1.data)])
-        println(is_maximum_s1)
-        println("------------------------------")
+        # println("------------------------------")
+        # println(sort(kde_s1.data))
+        # println([MultiKDE.pdf(kde_s1, _dt, keep_all=false) for _dt in sort(kde_s1.data)])
+        # println(is_maximum_s1)
+        # println("------------------------------")
         # Debug plotting
         # if sum(is_maximum_s1) < (length(is_maximum_s1)-s1_tol)
         #     x = LinRange(minimum(kde_s1.data), maximum(kde_s1.data), 20000)
@@ -219,26 +219,48 @@ end
     # Variables needed for Sanity-check
     # Try different combinations
     for num_dim in multi_test_num_dims
-        println("Number of dimensions = ", num_dim)
-        # Prepare Random KDEMulti
-        _dims = dim_types[randint(num_dim, length(dim_types))]
-        _dims = [_dim==ContinuousDim ? _dim() : (_dim==CategoricalDim ? _dim(categorical_level) : _dim(unordered_level)) for _dim in _dims]
-        _bw_s1 = [bw_s1 for _ in 1:num_dim]
-        _bw_s2 = [bw_s2 for _ in 1:num_dim]
-        dt = gen_batch_data(_dims, num_obs)
-        candidates = Dict{Int, Vector}()
-        for (i, __dims) in zip(1:length(_dims), _dims)
-            if __dims isa UnorderedCategoricalDim
-                candidates[i] = unordered_objs
-            end
-        end
-        multi_kde_s1 = KDEMulti(_dims, _bw_s1, dt, candidates)
-        multi_kde_s2 = KDEMulti(_dims, _bw_s2, dt, candidates)
         for _ in 1:multi_sanity_trial
+            println("Number of dimensions = ", num_dim)
+            # Prepare Random KDEMulti
+            _dims = dim_types[randint(num_dim, length(dim_types))]
+            _dims = [_dim==ContinuousDim ? _dim() : (_dim==CategoricalDim ? _dim(categorical_level) : _dim(unordered_level)) for _dim in _dims]
+            _bw_s1 = [bw_s1 for _ in 1:num_dim]
+            _bw_s2 = [bw_s2 for _ in 1:num_dim]
+            dt = gen_batch_data(_dims, num_obs)
+            candidates = Dict{Int, Vector}()
+            for (i, __dims) in zip(1:length(_dims), _dims)
+                if __dims isa UnorderedCategoricalDim
+                    candidates[i] = unordered_objs
+                end
+            end
+            local dt_s1
+            if any([_dim isa ContinuousDim for _dim in _dims])
+                valid_idx = []
+                for (_k, _dim) in zip(1:length(_dims), _dims)
+                    if _dim isa ContinuousDim
+                        _dim_dt = [_dt[_k] for _dt in dt]
+                        _valid_idx = filter(_i->all([abs(_dim_dt[_i]-_dim_dt[_j])>2 for _j in 1:length(_dim_dt) if _dim_dt[_i]≠_dim_dt[_j]]), 1:length(_dim_dt))
+                        push!(valid_idx, _valid_idx)
+                    end
+                end
+                valid_idx = intersect(valid_idx...)
+                dt_s1 = dt[valid_idx]
+            else
+                dt_s1 = dt
+            end
+            # println("------------------------------")
+            # println(_dims)
+            # println(_bw_s1)
+            # println(_bw_s2)
+            # println(dt_s1)
+            # println(candidates)
+            # println("------------------------------")
+            multi_kde_s1 = KDEMulti(_dims, _bw_s1, dt_s1, candidates)
+            multi_kde_s2 = KDEMulti(_dims, _bw_s2, dt, candidates)
             # 2. Sanity-check 1: When bandwidth is small enough, the gradient of PDF of observations shoule be close to zero.
             println("Performing sanity check 1...")
             ## Gradient function
-            is_maximum_s1 = [is_maximum(multi_kde_s1, _dt, delta=diff_delta) for _dt in dt]
+            is_maximum_s1 = [is_maximum(multi_kde_s1, _dt, delta=diff_delta) for _dt in dt_s1]
             println(is_maximum_s1)
             # @test sum(grad_s1 .< zero_val_tolerance) >= (length(grad_s1)-zero_num_tolerance)
             @test sum(is_maximum_s1) >= (length(is_maximum_s1))
