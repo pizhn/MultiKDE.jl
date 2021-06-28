@@ -1,4 +1,4 @@
-# MultiKDE.jl
+# MultiKDE
 
 [![Actions Status](https://github.com/noil-reed/MultiKDE.jl/workflows/CI/badge.svg)](https://github.com/noil-reed/MultiKDE.jl/actions)
 [![codecov](https://codecov.io/gh/noil-reed/MultiKDE.jl/branch/main/graph/badge.svg)](https://app.codecov.io/gh/noil-reed/MultiKDE.jl)
