@@ -2,8 +2,10 @@
 
 module MultiKDE
 
-export KDEMulti, KDEUniva, pdf, gpke
+export KDEMulti, KDEUniv, pdf, gpke
 export DimensionType, ContinuousDim, CategoricalDim, UnorderedCategoricalDim
+
+using Distributions
 
 abstract type  DimensionType end
 struct ContinuousDim <: DimensionType end 

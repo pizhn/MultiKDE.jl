@@ -1,7 +1,7 @@
 # default kernel function of difference types
-const type_kernel = Dict(ContinuousDim => gaussian, CategoricalDim => wang_ryzin, UnorderedCategoricalDim => aitchison_aitken)
+const KERNEL_TYPE = Dict(ContinuousDim => gaussian, CategoricalDim => wang_ryzin, UnorderedCategoricalDim => aitchison_aitken)
 
-function create_unordered_map(candidates::Vector)
+function map_dim(candidates::Vector)
     unordered_to_index, index_to_unordered = Dict(), Dict()
     for (i, elem) in enumerate(candidates)
         unordered_to_index[elem] = i
@@ -10,24 +10,7 @@ function create_unordered_map(candidates::Vector)
     (unordered_to_index, index_to_unordered)
 end
 
-# Lazy evaluation univariate KDE
-Base.@kwdef mutable struct KDEUniv
-    data::Vector
-    bandwidth::Real
-    type::DimensionType
-    kernel::Function
-    is_number::Bool
-end
-
-function pdf(kde::KDEUniv, x::Real; keep_all=true)
-    densities = kde.kernel(kde.bandwidth, kde.data, x)
-    if keep_all
-        return densities
-    else
-        return mean(densities) / kde.bandwidth
-    end
-end
-
+# Candidate need to be mapped from UnorderedCategoricalDim
 function candidate_need_map(dim_type, candidate)
     if dim_type isa UnorderedCategoricalDim
         for _candidate in candidate
@@ -39,7 +22,8 @@ function candidate_need_map(dim_type, candidate)
     return false
 end
 
-function observations_need_map(dim_type, observation)
+# Observation need to be mapped from UnorderedCategoricalDim
+function observation_need_map(dim_type, observation)
     if dim_type isa UnorderedCategoricalDim
         for _observation in observation
             if !(_observation isa Real)
@@ -48,6 +32,27 @@ function observations_need_map(dim_type, observation)
         end
     end
     return false
+end
+
+# Lazy evaluation univariate KDE
+Base.@kwdef mutable struct KDEUniv
+    type::DimensionType
+    bandwidth::Real
+    data::Vector
+    kernel::Function
+end
+# Using default kernel for dim_type
+function KDEUniv(dim_type::DimensionType, bandwidth, observation)
+    KDEUniv(dim_type, bandwidth, observation, KERNEL_TYPE[typeof(dim_type)])
+end
+
+function pdf(kde::KDEUniv, x::Real; keep_all=true)
+    densities = kde.kernel(kde.bandwidth, kde.data, x)
+    if keep_all
+        return densities
+    else
+        return mean(densities) / kde.bandwidth
+    end
 end
 
 # Multivariate KDE based on KDEUniv
@@ -60,6 +65,8 @@ Base.@kwdef mutable struct KDEMulti
     observations::Vector
     mat_observations::Matrix
     # In UnorderedContinuous case, we assign an index 1:N to every value, where N=|D_i|, then we pass the 1:N to KDE
+    # dimension i is number or not
+    mapped::Vector
     unordered_to_index::Dict{KDEUniv, Dict{Any, Real}}
     index_to_unordered::Dict{KDEUniv, Dict{Real, Any}}
 end
@@ -70,7 +77,7 @@ function KDEMulti(dims::Vector, observations::Vector)
 end
 function KDEMulti(dims::Vector, bws::Union{Vector, Nothing}, observations::Vector)
     for (dim_type, observation) in zip(dims, observations)
-        if observations_need_map(dim_type, observation)
+        if observation_need_map(dim_type, observation)
             error("If there is Uncatogorical dimension and not a number, should specify its candidate value.")
         end
     end
@@ -106,27 +113,28 @@ end
 function KDEMulti(dims::Vector, bws::Union{Vector, Nothing}, mat_observations::Matrix, candidates::Union{Dict{Int, Vector}, Nothing})
     _KDEs, _observations, _unordered_to_index, _index_to_unordered = Vector(), Vector(), Dict{Int, Dict{Any, Real}}(), 
                                                                             Dict{Int, Dict{Real, Any}}()
-    is_numbers = Vector{Bool}()
+    mapped = Vector{Bool}()
     for (i, dim_type_i) in zip(1:size(mat_observations)[1], dims)
         _observations_i = mat_observations[i, :]
-        if observations_need_map(dim_type_i, _observations_i) && ((candidates isa Nothing) || !haskey(candidates, i))
+        if observation_need_map(dim_type_i, _observations_i) && ((candidates isa Nothing) || !haskey(candidates, i))
             error("No corresponding candidate at dimension. ")
         end
         if !(candidates isa Nothing) && haskey(candidates, i) && candidate_need_map(dim_type_i, candidates[i])
-            _unordered_to_index_i, _index_to_unordered_i = create_unordered_map(candidates[i])
+            _unordered_to_index_i, _index_to_unordered_i = map_dim(candidates[i])
             _unordered_to_index[i], _index_to_unordered[i] = _unordered_to_index_i, _index_to_unordered_i
             _observations_i = [_unordered_to_index_i[elem] for elem in _observations_i]
-            push!(is_numbers, false)
+            push!(mapped, true)
         else
-            push!(is_numbers, true)
+            push!(mapped, false)
         end
         push!(_observations, _observations_i)
     end
     if bws isa Nothing
         bws = default_bandwidth(_observations)
     end
-    for (_observations_i, bandwidth_i, dim_type_i, is_number) in zip(_observations, bws, dims, is_numbers)
-        kde_i = KDEUniv(_observations_i, bandwidth_i, dim_type_i, type_kernel[typeof(dim_type_i)], is_number)
+    for (_observations_i, bandwidth_i, dim_type_i) in zip(_observations, bws, dims)
+        # kde_i = KDEUniv(_observations_i, bandwidth_i, dim_type_i, type_kernel[typeof(dim_type_i)], is_number)
+        kde_i = KDEUniv(dim_type_i, bandwidth_i, _observations_i)
         push!(_KDEs, kde_i)
     end
     unordered_to_index, index_to_unordered = Dict{KDEUniv, Dict{Any, Real}}(), Dict{KDEUniv, Dict{Real, Any}}()
@@ -136,7 +144,7 @@ function KDEMulti(dims::Vector, bws::Union{Vector, Nothing}, mat_observations::M
             index_to_unordered[_KDEs[i]] = _index_to_unordered[i]
         end
     end
-    KDEMulti(dims, _KDEs, _observations, mat_observations, unordered_to_index, index_to_unordered)
+    KDEMulti(dims, _KDEs, _observations, mat_observations, mapped, unordered_to_index, index_to_unordered)
 end
 
 # GPKE and kernel code refers to Nonparametric part of ['statsmodels'](https://github.com/statsmodels/statsmodels)
@@ -156,7 +164,7 @@ end
 function gpke(multi_kde::KDEMulti, x::Vector)
     Kval = Array{Real}(undef, (length(multi_kde.observations[1]), length(multi_kde.observations)))
     for (i, _kde, _x) in zip(1:length(x), multi_kde.KDEs, x)
-        if !_kde.is_number
+        if multi_kde.mapped[i]
             _x = multi_kde.unordered_to_index[_kde][_x]
         end
         Kval[:, i] = pdf(_kde, _x)
