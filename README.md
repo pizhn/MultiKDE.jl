@@ -11,7 +11,7 @@ A kernel density estimation library, what makes this one different from other ju
 
 
 ## Usage
-### Examples <sub><sup>[[notebook]](https://github.com/noil-reed/notebooks/blob/main/MultiKDE_demo/demo.ipynb)</sup></sub>
+### Example <sub><sup>[[notebook]](https://github.com/noil-reed/notebooks/blob/main/MultiKDE_demo/demo.ipynb)</sup></sub>
 
 
 #### One-dimension KDE
@@ -81,7 +81,8 @@ plot!(observations_x1, observations_x2, [highest for _ in 1:length(observations)
 
 <!-- ### Categorical (TBA) -->
 
-
+## Post
+[MultiKDE.jl: A Lazy Evaluation Multivariate Kernel Density Estimator](https://noil-reed.github.io/2021/MultiKDE.jl-a-lazy-evaluation-multivariate-kernel-density-estimator/)
 
 ## Liscense
 Licensed under [MIT Liscense](https://github.com/noil-reed/MultiKDE.jl/blob/main/LICENSE).
