@@ -1,4 +1,8 @@
-using Test, MultiKDE, Distributions  # , Plots
+using Test, MultiKDE, Distributions
+using Random, ReferenceTests, FileIO, Plots
+
+# seed for random numbers
+SEED = 1000
 
 # Hard-code test cases and expected results
 hardcode_data = [
@@ -75,6 +79,11 @@ min_range = 1
 unordered_objs = Vector{Any}([Vector{Int},  Vector{Float64}, Vector{Array}, Vector{Vector}, Vector{Pair}, Vector{ErrorException}, Vector{Tuple}])
 append!(unordered_objs, 1:unordered_extra_level)
 unordered_level = length(unordered_objs)
+
+# bw for plotting test
+bw_plotting = Dict(ContinuousDim=>1., CategoricalDim=>1., UnorderedCategoricalDim=>1.)
+bw_plotting1 = bw_plotting
+bw_plotting2 = bw_plotting
 
 function randint(n_mx)
     ceil(Int,rand()*n_mx)
@@ -211,6 +220,42 @@ end
         end
         println(grad_s2)
         @test sum((grad_s2 .≈ 0) .| (grad_s2 .< 0)) == length(grad_s2)
+    end
+
+    # test plotting
+    for (id, _dim) in enumerate(dim_types)
+        
+        # for reproducibility
+        Random.seed!(SEED)
+
+        
+        _dim_instance = _dim==ContinuousDim ? _dim() : (_dim==CategoricalDim ? _dim(categorical_level) : _dim(unordered_level))
+        dt = gen_batch_data(_dim_instance, num_obs)
+        # Filter observations that are too close
+        local dt_s1
+        if _dim_instance isa ContinuousDim
+            dt_s1 = filter(e->all([abs(e-_dt)>2 for _dt in dt if _dt≠e]), dt)
+        else
+            dt_s1 = dt
+        end
+
+        # create distributions
+        kde_s1 = KDEUniv(_dim_instance, bw_plotting1[_dim], dt_s1)
+        kde_s2 = KDEUniv(_dim_instance, bw_plotting2[_dim], dt)
+
+        # create plotting values
+        x = LinRange(minimum(kde_s1.data), maximum(kde_s1.data), 20000)
+        # pdf
+        y = [MultiKDE.pdf(kde_s1, _x, keep_all=false) for _x in x]
+        # cdf
+        y_cdf = [MultiKDE.cdf(kde_s1, _x, keep_all=false) for _x in x]
+
+        # plots
+        h_plot = plot(x, y_cdf, label="cdf")
+        plot!(kde_s1.data, [maximum(y)+0.05 for _ in 1:length(y)], seriestype=:scatter, size=(900, 450), label="pdf")
+        
+        @test_reference "./refs/KDEUniv_plot_$(string(_dim)).png" h_plot
+
     end
 end
 
