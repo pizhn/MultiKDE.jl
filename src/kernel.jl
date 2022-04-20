@@ -45,7 +45,7 @@ end
 
 
 # ordered categorical default cumulative kernel: wang-ryzin
-function wang_ryzin_cdf(bandwidth::Real, observations::Vector, x::Real)
+function wang_ryzin_cdf(bandwidth::Real, observations::Vector, x::Real) #(h, Xi, x_u):
     ordered = zeros(length(observations))
     for x_it in unique(observations)
         if x_it <= x
