@@ -81,7 +81,7 @@ append!(unordered_objs, 1:unordered_extra_level)
 unordered_level = length(unordered_objs)
 
 # bw for plotting test
-bw_plotting = Dict(ContinuousDim=>1., CategoricalDim=>1., UnorderedCategoricalDim=>1.)
+bw_plotting = Dict(ContinuousDim=>.5, CategoricalDim=>.3, UnorderedCategoricalDim=>.3)
 bw_plotting1 = bw_plotting
 bw_plotting2 = bw_plotting
 

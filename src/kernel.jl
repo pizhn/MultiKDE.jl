@@ -10,8 +10,8 @@ function aitchison_aitken(bandwidth::Real, observations::Vector, x::Real; num_le
     if isnothing(num_levels)
         num_levels = length(unique(observations))
     end
-    kernel_value = ones(length(observations)) * bandwidth / (num_levels - 1)
-    idx = observations .== x
+    kernel_value = ones(length(observations)) .* bandwidth ./ (num_levels - 1)
+    idx = (observations .== x)
     kernel_value[idx] .= (idx * (1 - bandwidth))[idx]
     return kernel_value
 end
@@ -38,7 +38,7 @@ const aitchison_aitken_kernel = Dict(PDF=>aitchison_aitken, CDF=>aitchison_aitke
 # ordered categorical default kernel: wang-ryzin
 function wang_ryzin(bandwidth::Real, observations::Vector, x::Real)
     kernel_value = 0.5 * (1 - bandwidth) * (bandwidth .^ abs.(observations .- x))
-    idx = observations .== x
+    idx = (observations .== x)
     kernel_value[idx] = (idx * (1-bandwidth))[idx]
     return kernel_value
 end
