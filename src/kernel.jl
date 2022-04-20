@@ -54,3 +54,11 @@ end
 function gaussian_cdf(bandwidth::Real, observations::Vector, x::Real)
     0.5 * bandwidth * (1 + erf.((x .- observations) ./ (bandwidth * sqrt(2))))
 end
+
+# Dictionary stating the relationship between pdf kernels and the corresponding
+# cumulative kernels (cdf)
+Dict(
+    gaussian=>gaussian_cdf,  # gaussian kernel
+    wang_ryzin=>wang_ryzin_cdf,  # wang_ryzin kernel
+    aitchison_aitken=>aitchison_aitken_cdf,  # aitchison_aitken kernel
+)
