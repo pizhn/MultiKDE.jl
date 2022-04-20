@@ -264,12 +264,16 @@ end
     # 1. Hard-code cases check
     # result = RealVectorVector()
     result = Vector()
+    result_cdf = Vector()
     for bandwidth in hardcode_bws
         multi_kde = KDEMulti(hardcode_dims, bandwidth, hardcode_data)
         _result = [MultiKDE.pdf(multi_kde, _data) for _data in hardcode_data_pred]
         push!(result, _result)
+        _result_cdf = [MultiKDE.pdf(multi_kde, _data) for _data in hardcode_data_pred]
+        push!(result_cdf, _result_cdf)
     end
     @test sum(result .≈ hardcode_expected_result) == length(hardcode_expected_result)
+    
     # Variables needed for Sanity-check
     # Try different combinations
     for num_dim in multi_test_num_dims
@@ -339,4 +343,5 @@ end
             @test sum((grad_s2 .≈ 0) .| (grad_s2 .< 0)) == length(grad_s2)
         end
     end
+    
 end

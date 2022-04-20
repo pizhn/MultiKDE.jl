@@ -169,7 +169,7 @@ end
 #     All rights reserved.
 
 # pdf of KDEMulti, using (unnormalized) GPKE(Generalized Product Kernel Estimator)
-function gpke(multi_kde::KDEMulti, x::Vector, pdf_type::PDF_TYPE=PDF)
+function gpke(multi_kde::KDEMulti, x::Vector, pdf_type::PDF_TYPE)
     Kval = Array{Real}(undef, (length(multi_kde.observations[1]), length(multi_kde.observations)))
     for (i, _kde, _x) in zip(1:length(x), multi_kde.KDEs, x)
         if multi_kde.mapped[i]
@@ -183,13 +183,13 @@ function gpke(multi_kde::KDEMulti, x::Vector, pdf_type::PDF_TYPE=PDF)
 end
 
 # Alias of gpke
-function pdf(multi_kde::KDEMulti, x::Vector, pdf_type::PDF_TYPE=PDF)
+function pdf(multi_kde::KDEMulti, x::Vector; pdf_type::PDF_TYPE=PDF)
     gpke(multi_kde, x, pdf_type)
 end
 
 # Alias of gpke
 function cdf(multi_kde::KDEMulti, x::Vector)
-    gpke(multi_kde, x, CDF)
+    pdf(multi_kde, x, pdf_type=CDF)
 end
 
 # Scott's normal reference rule of thumb bandwidth parameter
