@@ -18,12 +18,13 @@ end
 
 # unordered categorical default cumulative kernel: aitchison-aitken
 function aitchison_aitken_cdf(bandwidth::Real, observations::Vector, x::Real)
+    x = round(Int, x)
     obs_unique = unique(observations)
     ordered = zeros(length(observations))
     num_levels = length(obs_unique)
     for x_it in obs_unique
         if x_it <= x  #FIXME: why a comparison for unordered variables?
-            ordered += aitchison_aitken(bandwidth, observations, x, num_levels=num_levels)
+            ordered .+= aitchison_aitken(bandwidth, observations, x_it, num_levels=num_levels)
         end
     end
 
@@ -44,11 +45,11 @@ end
 
 
 # ordered categorical default cumulative kernel: wang-ryzin
-function wang_ryzin_cdf(bandwidth::Real, observations::Vector, x::Real) #(h, Xi, x_u):
+function wang_ryzin_cdf(bandwidth::Real, observations::Vector, x::Real)
     ordered = zeros(length(observations))
     for x_it in unique(observations)
         if x_it <= x
-            ordered += wang_ryzin(bandwidth, observations, x_it)
+            ordered .+= wang_ryzin(bandwidth, observations, x_it)
         end
     end
 
@@ -66,7 +67,7 @@ end
 
 # continuous default cumulative kernel: gaussian
 function gaussian_cdf(bandwidth::Real, observations::Vector, x::Real)
-    0.5 * bandwidth * (1 + erf.((x .- observations) ./ (bandwidth * sqrt(2))))
+    0.5 .* bandwidth .* (1 .+ erf.((x .- observations) ./ (bandwidth * sqrt(2))))
 end
 
 # dictionary of gaussian kernels

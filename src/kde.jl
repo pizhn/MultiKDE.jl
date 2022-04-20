@@ -59,6 +59,10 @@ function pdf(kde::KDEUniv, x::Real; pdf_type::PDF_TYPE=PDF, keep_all=true)
     end
 end
 
+function cdf(kde::KDEUniv, x::Real; keep_all=true)
+    return pdf(kde, x, pdf_type=CDF, keep_all=keep_all)
+end
+
 # Multivariate KDE based on KDEUniv
 Base.@kwdef mutable struct KDEMulti
     # Type of every dimension, continuous or discrete

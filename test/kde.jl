@@ -1,4 +1,4 @@
-using Test, MultiKDE, Distributions
+using Test, MultiKDE, Distributions  # , Plots
 
 # Hard-code test cases and expected results
 hardcode_data = [
@@ -182,6 +182,7 @@ end
         # if true  # sum(is_maximum_s1) < (length(is_maximum_s1)-s1_tol)
         #     x = LinRange(minimum(kde_s1.data), maximum(kde_s1.data), 20000)
         #     y = [MultiKDE.pdf(kde_s1, _x, keep_all=false) for _x in x]
+        #     y_cdf = [MultiKDE.cdf(kde_s1, _x, keep_all=false) for _x in x]
         #     highest = maximum(y)
         #     plot(x, y)
         #     plot!(kde_s1.data, [highest+0.05 for _ in 1:length(y)], seriestype=:scatter, size=(900, 450))
@@ -190,7 +191,11 @@ end
         #     println(kde_s1.kernel)
         #     println(sort(kde_s1.data))
         #     println("Plotted")
-        #     savefig(string(sum(is_maximum_s1), "_", it, ".png"))
+        #     savefig(string(sum(is_maximum_s1), it, "_", string(_dim), ".png"))
+        #     # Add plotting cdf distribution
+        #     plot(x, y_cdf)
+        #     plot!(kde_s1.data, [highest+0.05 for _ in 1:length(y)], seriestype=:scatter, size=(900, 450))
+        #     savefig(string("cdf_", sum(is_maximum_s1), it, ".png"))
         # end
         @test sum(is_maximum_s1) >= (length(is_maximum_s1)-s1_tol)
         # 2. Sanity-check 2: Using a hyperbox to include all observations, for every vector out of box that points opposite to box center, the gradient should be negative. 
