@@ -1,4 +1,10 @@
 # KDE kernels
+# type of distribution
+@enum PDF_TYPE begin
+    PDF  # Probability Density Function
+    CDF  # Cumulative Density Function
+end
+
 # unordered categorical default kernel: aitchison-aitken
 function aitchison_aitken(bandwidth::Real, observations::Vector, x::Real; num_levels=nothing)
     if isnothing(num_levels)
@@ -24,6 +30,10 @@ function aitchison_aitken_cdf(bandwidth::Real, observations::Vector, x::Real)
     return ordered
 end
 
+# dictionary of aitchison aitken kernels
+const aitchison_aitken_kernel = Dict(PDF=>aitchison_aitken, CDF=>aitchison_aitken_cdf)
+
+
 # ordered categorical default kernel: wang-ryzin
 function wang_ryzin(bandwidth::Real, observations::Vector, x::Real)
     kernel_value = 0.5 * (1 - bandwidth) * (bandwidth .^ abs.(observations .- x))
@@ -45,6 +55,10 @@ function wang_ryzin_cdf(bandwidth::Real, observations::Vector, x::Real) #(h, Xi,
     return ordered
 end
 
+# dictionary of wang ryzin kernels
+const wang_ryzin_kernel = Dict(PDF=>wang_ryzin, CDF=>wang_ryzin_cdf)
+
+
 # continuous default kernel: gaussian
 function gaussian(bandwidth::Real, observations::Vector, x::Real)
     (1 / sqrt(2*π)) * exp.(-(observations.-x).^2 / (bandwidth^2*2))
@@ -55,10 +69,5 @@ function gaussian_cdf(bandwidth::Real, observations::Vector, x::Real)
     0.5 * bandwidth * (1 + erf.((x .- observations) ./ (bandwidth * sqrt(2))))
 end
 
-# Dictionary stating the relationship between pdf kernels and the corresponding
-# cumulative kernels (cdf)
-Dict(
-    gaussian=>gaussian_cdf,  # gaussian kernel
-    wang_ryzin=>wang_ryzin_cdf,  # wang_ryzin kernel
-    aitchison_aitken=>aitchison_aitken_cdf,  # aitchison_aitken kernel
-)
+# dictionary of gaussian kernels
+const gaussian_kernel = Dict(PDF=>gaussian, CDF=>gaussian_cdf)

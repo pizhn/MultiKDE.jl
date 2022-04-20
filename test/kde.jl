@@ -147,7 +147,7 @@ function kde_gradient_to_point(kde::KDEUniv, x, y; delta=1e-10)
     vec = kde.type isa ContinuousDim ? x-y : (kde.type isa UnorderedCategoricalDim ? nothing : x-y)
     x1 = vec===nothing ? x : x-(vec*delta)
     x2 = vec===nothing ? x : x+(vec*delta)
-    (MultiKDE.pdf(kde, x2, keep_all=false) - MultiKDE.pdf(kde, x1, keep_all=false)) / delta
+    (MultiKDE.pdf(kde, x2; keep_all=false) - MultiKDE.pdf(kde, x1; keep_all=false)) / delta
 end
 
 @testset "KDEUniv" begin
