@@ -10,7 +10,7 @@ A kernel density estimation library, what make this one different from other Jul
 3. Categorical distribution: This library supports categorical KDE using two specific kernel functions [Wang-Ryzin](https://academic.oup.com/biomet/article-abstract/68/1/301/237752?redirectedFrom=fulltext) and [Aitchson-Aitken](https://academic.oup.com/biomet/article-abstract/63/3/413/270829?redirectedFrom=fulltext), in which the former one is for categorical distribution that is ordered (age, amount...), the latter is for categorical distribution that is unordered (sex, the face of the coin...). When using unordered categorical distribution, non-numeric objects are also supported. 
 
 
-## Usage
+## Use
 ### Example <sub><sup>[[notebook]](https://github.com/noil-reed/notebooks/blob/main/MultiKDE_demo/demo.ipynb)</sup></sub>
 
 
