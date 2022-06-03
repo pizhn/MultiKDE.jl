@@ -1,5 +1,9 @@
 # default kernel function of difference types
-const KERNEL_TYPE = Dict(ContinuousDim => gaussian, CategoricalDim => wang_ryzin, UnorderedCategoricalDim => aitchison_aitken)
+const KERNEL_TYPE = Dict(
+    ContinuousDim => gaussian_kernel,
+    CategoricalDim => wang_ryzin_kernel,
+    UnorderedCategoricalDim => aitchison_aitken_kernel
+)
 
 function map_dim(candidates::Vector)
     unordered_to_index, index_to_unordered = Dict(), Dict()
@@ -39,20 +43,24 @@ Base.@kwdef mutable struct KDEUniv
     type::DimensionType
     bandwidth::Real
     data::Vector
-    kernel::Function
+    kernel::Dict
 end
 # Using default kernel for dim_type
 function KDEUniv(dim_type::DimensionType, bandwidth, observation)
     KDEUniv(dim_type, bandwidth, observation, KERNEL_TYPE[typeof(dim_type)])
 end
 
-function pdf(kde::KDEUniv, x::Real; keep_all=true)
-    densities = kde.kernel(kde.bandwidth, kde.data, x)
+function pdf(kde::KDEUniv, x::Real; pdf_type::PDF_TYPE=PDF, keep_all=true)
+    densities = kde.kernel[pdf_type](kde.bandwidth, kde.data, x)
     if keep_all
         return densities
     else
         return mean(densities) / kde.bandwidth
     end
+end
+
+function cdf(kde::KDEUniv, x::Real; keep_all=true)
+    return pdf(kde, x, pdf_type=CDF, keep_all=keep_all)
 end
 
 # Multivariate KDE based on KDEUniv
@@ -161,13 +169,13 @@ end
 #     All rights reserved.
 
 # pdf of KDEMulti, using (unnormalized) GPKE(Generalized Product Kernel Estimator)
-function gpke(multi_kde::KDEMulti, x::Vector)
+function gpke(multi_kde::KDEMulti, x::Vector, pdf_type::PDF_TYPE)
     Kval = Array{Real}(undef, (length(multi_kde.observations[1]), length(multi_kde.observations)))
     for (i, _kde, _x) in zip(1:length(x), multi_kde.KDEs, x)
         if multi_kde.mapped[i]
             _x = multi_kde.unordered_to_index[_kde][_x]
         end
-        Kval[:, i] = pdf(_kde, _x)
+        Kval[:, i] = pdf(_kde, _x; pdf_type=pdf_type)
     end
     iscontinuous = [_dim isa ContinuousDim ? true : false for _dim in multi_kde.dims]
     dens = prod(Kval, dims=2) / prod([kde.bandwidth for kde in multi_kde.KDEs][iscontinuous])
@@ -175,8 +183,13 @@ function gpke(multi_kde::KDEMulti, x::Vector)
 end
 
 # Alias of gpke
-function pdf(multi_kde::KDEMulti, x::Vector)
-    gpke(multi_kde, x)
+function pdf(multi_kde::KDEMulti, x::Vector; pdf_type::PDF_TYPE=PDF)
+    gpke(multi_kde, x, pdf_type)
+end
+
+# Alias of gpke
+function cdf(multi_kde::KDEMulti, x::Vector)
+    pdf(multi_kde, x, pdf_type=CDF)
 end
 
 # Scott's normal reference rule of thumb bandwidth parameter
