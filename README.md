@@ -82,7 +82,7 @@ plot!(observations_x1, observations_x2, [highest for _ in 1:length(observations)
 <!-- ### Categorical (TBA) -->
 
 ## Post
-[MultiKDE.jl: A Lazy Evaluation Multivariate Kernel Density Estimator](https://pizhn.github.io/2021/06/22/MultiKDE.jl-a-lazy-evaluation-multivariate-kernel-density-estimator/)
+[MultiKDE.jl: A Lazy Evaluation Multivariate Kernel Density Estimator](https://pizhn.github.io/2021/06/22/MultiKDE.jl-a-lazy-evaluation-multivariate-kernel-density-estimator.html)
 
 ## Liscense
 Licensed under [MIT Liscense](https://github.com/pizhn/MultiKDE.jl/blob/main/LICENSE).
