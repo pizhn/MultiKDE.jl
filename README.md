@@ -11,7 +11,7 @@ A kernel density estimation library, what make this one different from other Jul
 
 
 ## Use
-### Example <sub><sup>[[notebook]](https://github.com/noilreed/notebooks/blob/main/MultiKDE_demo/demo.ipynb)</sup></sub>
+### Example <sub><sup>[[notebook]](https://github.com/pizhn/notebooks/blob/main/MultiKDE_demo/demo.ipynb)</sup></sub>
 
 
 #### One-dimension KDE
@@ -41,7 +41,7 @@ plot!(observations, [highest+0.05 for _ in 1:length(ys)], seriestype=:scatter, l
 
 ```
 
-![1d KDE visualization](https://raw.githubusercontent.com/noilreed/notebooks/842a60e81bad431dd70c6e04eb93f82ff10c1cda/MultiKDE_demo/dim1.svg)
+![1d KDE visualization](https://raw.githubusercontent.com/pizhn/notebooks/842a60e81bad431dd70c6e04eb93f82ff10c1cda/MultiKDE_demo/dim1.svg)
 
 #### Multi-dimension KDE
 
@@ -77,15 +77,15 @@ plot!(observations_x1, observations_x2, [highest for _ in 1:length(observations)
 
 ```
 
-![2d KDE visualization](https://raw.githubusercontent.com/noilreed/notebooks/842a60e81bad431dd70c6e04eb93f82ff10c1cda/MultiKDE_demo/dim2.svg)
+![2d KDE visualization](https://raw.githubusercontent.com/pizhn/notebooks/842a60e81bad431dd70c6e04eb93f82ff10c1cda/MultiKDE_demo/dim2.svg)
 
 <!-- ### Categorical (TBA) -->
 
 ## Post
-[MultiKDE.jl: A Lazy Evaluation Multivariate Kernel Density Estimator](https://noilreed.github.io/2021/06/22/MultiKDE.jl-a-lazy-evaluation-multivariate-kernel-density-estimator/)
+[MultiKDE.jl: A Lazy Evaluation Multivariate Kernel Density Estimator](https://pizhn.github.io/2021/06/22/MultiKDE.jl-a-lazy-evaluation-multivariate-kernel-density-estimator/)
 
 ## Liscense
-Licensed under [MIT Liscense](https://github.com/noilreed/MultiKDE.jl/blob/main/LICENSE).
+Licensed under [MIT Liscense](https://github.com/pizhn/MultiKDE.jl/blob/main/LICENSE).
 
 ## Contact
 ping69852@gmail.com
