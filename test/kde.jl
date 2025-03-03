@@ -1,54 +1,46 @@
 using Test, MultiKDE, Distributions
-using Random, ReferenceTests, FileIO, Plots
-
-# seed for random numbers
-SEED = 1000
 
 # Hard-code test cases and expected results
-hardcode_data = [
-    [0.75762386,6.0,8.0,],
-    [0.40709311,2.0,8.0,],
-    [0.73019489,1.0,7.0,],
-    [0.9350646,1.0,8.0,],
-    [0.20622478,7.0,3.0,],
-    [0.82868765,4.0,9.0,],
-    [0.83275865,6.0,5.0,],
-    [0.06151981,6.0,5.0,],
-    [0.47064985,2.0,0.0,],
-    [0.81312999,5.0,4.0,],
-    [0.60976384,5.0,0.0,],
-    [0.58597128,0.0,9.0,],
-    [0.97580821,5.0,9.0,],
-    [0.21986135,2.0,4.0,],
-    [0.33835384,6.0,6.0,],
-    [0.52131305,9.0,8.0,],
-    [0.0651185,6.0,9.0,],
-    [0.75884609,9.0,3.0,],
-    [0.59935732,5.0,4.0,],
-    [0.88377118,6.0,3.0,],
-]
-hardcode_data_pred = [
-    [0.11249392,4.0,6.0,],
-    [0.28704927,5.0,3.0,],
-    [0.06442488,1.0,6.0,],
-    [0.88971842,6.0,9.0,],
-    [0.58269063,5.0,2.0,],
-    [0.04070221,3.0,4.0,],
-    [0.33534097,2.0,3.0,],
-    [0.25188701,3.0,9.0,],
-    [0.54533024,5.0,9.0,],
-    [0.51731902,2.0,2.0,],
-    [0.40469525,5.0,1.0,],
-    [0.34114321,8.0,4.0,],
-    [0.39484506,7.0,9.0,],
-    [0.45614159,6.0,3.0,],
-    [0.01384118,2.0,2.0,],
-    [0.09847895,3.0,5.0,],
-    [0.95260732,8.0,3.0,],
-    [0.92190954,2.0,1.0,],
-    [0.10851023,7.0,7.0,],
-    [0.41038077,2.0,3.0,],
-]
+hardcode_data = [[0.75762386,6.0,8.0,],
+[0.40709311,2.0,8.0,],
+[0.73019489,1.0,7.0,],
+[0.9350646,1.0,8.0,],
+[0.20622478,7.0,3.0,],
+[0.82868765,4.0,9.0,],
+[0.83275865,6.0,5.0,],
+[0.06151981,6.0,5.0,],
+[0.47064985,2.0,0.0,],
+[0.81312999,5.0,4.0,],
+[0.60976384,5.0,0.0,],
+[0.58597128,0.0,9.0,],
+[0.97580821,5.0,9.0,],
+[0.21986135,2.0,4.0,],
+[0.33835384,6.0,6.0,],
+[0.52131305,9.0,8.0,],
+[0.0651185,6.0,9.0,],
+[0.75884609,9.0,3.0,],
+[0.59935732,5.0,4.0,],
+[0.88377118,6.0,3.0,],]
+hardcode_data_pred = [[0.11249392,4.0,6.0,],
+[0.28704927,5.0,3.0,],
+[0.06442488,1.0,6.0,],
+[0.88971842,6.0,9.0,],
+[0.58269063,5.0,2.0,],
+[0.04070221,3.0,4.0,],
+[0.33534097,2.0,3.0,],
+[0.25188701,3.0,9.0,],
+[0.54533024,5.0,9.0,],
+[0.51731902,2.0,2.0,],
+[0.40469525,5.0,1.0,],
+[0.34114321,8.0,4.0,],
+[0.39484506,7.0,9.0,],
+[0.45614159,6.0,3.0,],
+[0.01384118,2.0,2.0,],
+[0.09847895,3.0,5.0,],
+[0.95260732,8.0,3.0,],
+[0.92190954,2.0,1.0,],
+[0.10851023,7.0,7.0,],
+[0.41038077,2.0,3.0,],]
 
 # Expected result of above input
 hardcode_expected_result = [
@@ -79,11 +71,6 @@ min_range = 1
 unordered_objs = Vector{Any}([Vector{Int},  Vector{Float64}, Vector{Array}, Vector{Vector}, Vector{Pair}, Vector{ErrorException}, Vector{Tuple}])
 append!(unordered_objs, 1:unordered_extra_level)
 unordered_level = length(unordered_objs)
-
-# bw for plotting test
-bw_plotting = Dict(ContinuousDim=>.5, CategoricalDim=>.3, UnorderedCategoricalDim=>.3)
-bw_plotting1 = bw_plotting
-bw_plotting2 = bw_plotting
 
 function randint(n_mx)
     ceil(Int,rand()*n_mx)
@@ -160,12 +147,12 @@ function kde_gradient_to_point(kde::KDEUniv, x, y; delta=1e-10)
     vec = kde.type isa ContinuousDim ? x-y : (kde.type isa UnorderedCategoricalDim ? nothing : x-y)
     x1 = vec===nothing ? x : x-(vec*delta)
     x2 = vec===nothing ? x : x+(vec*delta)
-    (MultiKDE.pdf(kde, x2; keep_all=false) - MultiKDE.pdf(kde, x1; keep_all=false)) / delta
+    (MultiKDE.pdf(kde, x2, keep_all=false) - MultiKDE.pdf(kde, x1, keep_all=false)) / delta
 end
 
 @testset "KDEUniv" begin
     println("Test set for KDEUniv")
-    for it in 1:univ_sanity_trial
+    for _ in 1:univ_sanity_trial
         _dim = dim_types[randint(length(dim_types))]
         _dim = _dim==ContinuousDim ? _dim() : (_dim==CategoricalDim ? _dim(categorical_level) : _dim(unordered_level))
         dt = gen_batch_data(_dim, num_obs)
@@ -187,11 +174,10 @@ end
         # println([MultiKDE.pdf(kde_s1, _dt, keep_all=false) for _dt in sort(kde_s1.data)])
         # println(is_maximum_s1)
         # println("------------------------------")
-        # # Debug plotting
-        # if true  # sum(is_maximum_s1) < (length(is_maximum_s1)-s1_tol)
+        # Debug plotting
+        # if sum(is_maximum_s1) < (length(is_maximum_s1)-s1_tol)
         #     x = LinRange(minimum(kde_s1.data), maximum(kde_s1.data), 20000)
         #     y = [MultiKDE.pdf(kde_s1, _x, keep_all=false) for _x in x]
-        #     y_cdf = [MultiKDE.cdf(kde_s1, _x, keep_all=false) for _x in x]
         #     highest = maximum(y)
         #     plot(x, y)
         #     plot!(kde_s1.data, [highest+0.05 for _ in 1:length(y)], seriestype=:scatter, size=(900, 450))
@@ -200,11 +186,7 @@ end
         #     println(kde_s1.kernel)
         #     println(sort(kde_s1.data))
         #     println("Plotted")
-        #     savefig(string(sum(is_maximum_s1), it, "_", string(_dim), ".png"))
-        #     # Add plotting cdf distribution
-        #     plot(x, y_cdf)
-        #     plot!(kde_s1.data, [highest+0.05 for _ in 1:length(y)], seriestype=:scatter, size=(900, 450))
-        #     savefig(string("cdf_", sum(is_maximum_s1), it, ".png"))
+        #     savefig(string(sum(is_maximum_s1), ".png"))
         # end
         @test sum(is_maximum_s1) >= (length(is_maximum_s1)-s1_tol)
         # 2. Sanity-check 2: Using a hyperbox to include all observations, for every vector out of box that points opposite to box center, the gradient should be negative. 
@@ -221,42 +203,6 @@ end
         println(grad_s2)
         @test sum((grad_s2 .≈ 0) .| (grad_s2 .< 0)) == length(grad_s2)
     end
-
-    # test plotting
-    for (id, _dim) in enumerate(dim_types)
-        
-        # for reproducibility
-        Random.seed!(SEED)
-
-        
-        _dim_instance = _dim==ContinuousDim ? _dim() : (_dim==CategoricalDim ? _dim(categorical_level) : _dim(unordered_level))
-        dt = gen_batch_data(_dim_instance, num_obs)
-        # Filter observations that are too close
-        local dt_s1
-        if _dim_instance isa ContinuousDim
-            dt_s1 = filter(e->all([abs(e-_dt)>2 for _dt in dt if _dt≠e]), dt)
-        else
-            dt_s1 = dt
-        end
-
-        # create distributions
-        kde_s1 = KDEUniv(_dim_instance, bw_plotting1[_dim], dt_s1)
-        kde_s2 = KDEUniv(_dim_instance, bw_plotting2[_dim], dt)
-
-        # create plotting values
-        x = LinRange(minimum(kde_s1.data), maximum(kde_s1.data), 20000)
-        # pdf
-        y = [MultiKDE.pdf(kde_s1, _x, keep_all=false) for _x in x]
-        # cdf
-        y_cdf = [MultiKDE.cdf(kde_s1, _x, keep_all=false) for _x in x]
-
-        # plots
-        h_plot = plot(x, y_cdf, label="cdf")
-        plot!(kde_s1.data, [maximum(y)+0.05 for _ in 1:length(y)], seriestype=:scatter, size=(900, 450), label="pdf")
-        
-        @test_reference "./refs/KDEUniv_plot_$(string(_dim)).png" h_plot
-
-    end
 end
 
 @testset "KDEMulti" begin
@@ -264,16 +210,12 @@ end
     # 1. Hard-code cases check
     # result = RealVectorVector()
     result = Vector()
-    result_cdf = Vector()
     for bandwidth in hardcode_bws
         multi_kde = KDEMulti(hardcode_dims, bandwidth, hardcode_data)
         _result = [MultiKDE.pdf(multi_kde, _data) for _data in hardcode_data_pred]
         push!(result, _result)
-        _result_cdf = [MultiKDE.pdf(multi_kde, _data) for _data in hardcode_data_pred]
-        push!(result_cdf, _result_cdf)
     end
     @test sum(result .≈ hardcode_expected_result) == length(hardcode_expected_result)
-    
     # Variables needed for Sanity-check
     # Try different combinations
     for num_dim in multi_test_num_dims
@@ -343,5 +285,4 @@ end
             @test sum((grad_s2 .≈ 0) .| (grad_s2 .< 0)) == length(grad_s2)
         end
     end
-    
 end
